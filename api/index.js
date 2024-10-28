@@ -1,8 +1,16 @@
 import Fastify from 'fastify'
+import cors from '@fastify/cors';
 
 const app = Fastify({
   logger: true,
 })
+
+// Register the CORS plugin
+app.register(cors, {
+  origin: '*', // Allow requests from any origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type'], // Allowed headers
+});
 
 app.get('/healthCheck', async (req, reply) => {
   return reply.status(200).send({ message: "ALL OK!"})
