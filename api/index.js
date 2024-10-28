@@ -4,63 +4,46 @@ const app = Fastify({
   logger: true,
 })
 
-app.get('/', async (req, reply) => {
-  return reply.status(200).type('text/html').send(html)
+app.get('/healthCheck', async (req, reply) => {
+  return reply.status(200).send({ message: "ALL OK!"})
 })
+app.get('/accessToken', async (req, reply) => {
+  const code = req.query.code; // Capture the `code` from query parameters
+
+  if (!code) {
+    return reply.status(400).send('Missing "code" query parameter');
+  }
+
+  try {
+    const response = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json', // GitHub expects this header to return JSON
+      },
+      body: JSON.stringify({
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        code: code,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      return reply.status(400).send({ error: data.error_description });
+    }
+
+    // Send the access token back to the client
+    return reply.status(200).send({ token: data.access_token });
+
+  } catch (error) {
+    console.error('Error fetching access token:', error);
+    return reply.status(500).send({ error: 'Internal Server Error' });
+  }
+});
 
 export default async function handler(req, reply) {
   await app.ready()
   app.server.emit('request', req, reply)
 }
-
-const html = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
-    />
-    <title>Vercel + Fastify Hello World</title>
-    <meta
-      name="description"
-      content="This is a starter template for Vercel + Fastify."
-    />
-  </head>
-  <body>
-    <h1>Vercel + Fastify Hello World</h1>
-    <p>
-      This is a starter template for Vercel + Fastify. Requests are
-      rewritten from <code>/*</code> to <code>/api/*</code>, which runs
-      as a Vercel Function.
-    </p>
-    <p>
-        For example, here is the boilerplate code for this route:
-    </p>
-    <pre>
-<code>import Fastify from 'fastify'
-
-const app = Fastify({
-  logger: true,
-})
-
-app.get('/', async (req, res) => {
-  return res.status(200).type('text/html').send(html)
-})
-
-export default async function handler(req: any, res: any) {
-  await app.ready()
-  app.server.emit('request', req, res)
-}</code>
-    </pre>
-    <p>
-    <p>
-      <a href="https://vercel.com/templates/other/fastify-serverless-function">
-      Deploy your own
-      </a>
-      to get started.
-  </body>
-</html>
-`
