@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import axios from 'axios';
+import https from 'https';
 
 const app = Fastify({
   logger: true,
@@ -13,32 +13,61 @@ app.get('/accessToken', async (req, reply) => {
     const code = req.query.code; // Capture the `code` from query parameters
 
     if (!code) {
-      return reply.status(400).send('Missing "code" query parameter');
+      return reply.status(400).send({ error: 'Missing "code" query parameter' });
     }
 
-    const response = await axios.post(
-        'https://github.com/login/oauth/access_token',
-        {
-          client_id: process.env.CLIENT_ID,
-          client_secret: process.env.CLIENT_SECRET,
-          code: code,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json', // GitHub expects this header to return JSON
-          },
-        }
-    );
+    const postData = JSON.stringify({
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+      code: code,
+    });
 
-    const data = response.data;
+    const options = {
+      hostname: 'github.com',
+      path: '/login/oauth/access_token',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json', // GitHub expects this header to return JSON
+        'Content-Length': postData.length,
+      },
+    };
 
-    if (data.error) {
-      return reply.status(400).send({ error: data.error_description });
-    }
+    const fetchAccessToken = () =>
+        new Promise((resolve, reject) => {
+          const req = https.request(options, (res) => {
+            let data = '';
+
+            res.on('data', (chunk) => {
+              data += chunk;
+            });
+
+            res.on('end', () => {
+              try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.error) {
+                  reject(parsedData.error_description);
+                } else {
+                  resolve(parsedData.access_token);
+                }
+              } catch (e) {
+                reject('Error parsing response');
+              }
+            });
+          });
+
+          req.on('error', (error) => {
+            reject(error);
+          });
+
+          req.write(postData);
+          req.end();
+        });
+
+    const token = await fetchAccessToken();
 
     // Send the access token back to the client
-    return reply.status(200).send({ token: data.access_token });
+    return reply.status(200).send({ token });
 
   } catch (error) {
     console.error('Error fetching access token:', error);
