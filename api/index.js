@@ -1,4 +1,5 @@
-import Fastify from 'fastify'
+import Fastify from 'fastify';
+import fetch from "node-fetch";
 
 const app = Fastify({
   logger: true,
