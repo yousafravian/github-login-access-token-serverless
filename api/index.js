@@ -8,13 +8,14 @@ app.get('/healthCheck', async (req, reply) => {
   return reply.status(200).send({ message: "ALL OK!"})
 })
 app.get('/accessToken', async (req, reply) => {
-  const code = req.query.code; // Capture the `code` from query parameters
 
-  if (!code) {
-    return reply.status(400).send('Missing "code" query parameter');
-  }
 
   try {
+    const code = req.query.code; // Capture the `code` from query parameters
+
+    if (!code) {
+      return reply.status(400).send('Missing "code" query parameter');
+    }
     const response = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: {
