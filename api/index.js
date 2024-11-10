@@ -11,7 +11,8 @@ app.get('/healthCheck', async (req, reply) => {
 app.get('/accessToken', async (req, reply) => {
   try {
     const code = req?.query?.code; // Capture the `code` from query parameters
-    console.log(code);
+    console.log('code:', code);
+    console.log('env:', process.env);
 
     if (!code) {
       return reply.status(400).send({ error: 'Missing "code" query parameter' });
@@ -54,7 +55,7 @@ app.get('/accessToken', async (req, reply) => {
                 const parsedData = JSON.parse(data);
                 console.log('on:End:afterParse', parsedData);
                 if (parsedData.error) {
-                  console.log('on:End:error');
+                  console.log('on:End:error',parsedData?.error);
                   reject(parsedData.error_description);
                 } else {
                   console.log('on:End:accessToken')
