@@ -85,7 +85,7 @@ app.get('/accessToken', async (req, reply) => {
     return reply.status(200).send({ token });
 
   } catch (error) {
-    console.error('Error fetching access token:', error?.message, error?.stack);
+    console.error('Error fetching access token:', error?.message, error?.stack, error);
     return reply.status(500).send({ error: 'Internal Server Error' });
   }
 });
