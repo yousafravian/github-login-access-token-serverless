@@ -19,8 +19,8 @@ app.get('/accessToken', async (req, reply) => {
     }
 
     const postData = JSON.stringify({
-      client_id: process.env.CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
+      client_id: process.env.client_id,
+      client_secret: process.env.client_secret,
       code: code,
     });
 
