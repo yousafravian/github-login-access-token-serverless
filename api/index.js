@@ -9,9 +9,14 @@ app.get('/healthCheck', async (req, reply) => {
   return reply.status(200).send({ message: "ALL OK!"})
 })
 app.get('/accessToken', async (req, reply) => {
-  reply.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins, or specify a specific origin here
-  reply.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Specify allowed HTTP methods
-  reply.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers if needed
+  reply.header('Access-Control-Allow-Origin', '*'); // Allow all origins, or specify one like 'http://localhost:3000'
+  reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    return reply.status(200).send();
+  }
 
   try {
     const code = req?.query?.code; // Capture the `code` from query parameters
