@@ -9,6 +9,10 @@ app.get('/healthCheck', async (req, reply) => {
   return reply.status(200).send({ message: "ALL OK!"})
 })
 app.get('/accessToken', async (req, reply) => {
+  reply.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins, or specify a specific origin here
+  reply.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Specify allowed HTTP methods
+  reply.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers if needed
+
   try {
     const code = req?.query?.code; // Capture the `code` from query parameters
     console.log('code:', code);
@@ -86,8 +90,8 @@ app.get('/accessToken', async (req, reply) => {
     return reply.status(200).send({ token });
 
   } catch (error) {
-    console.error('Error fetching access token:', error?.message, error?.stack, error);
-    return reply.status(500).send({ error: 'Internal Server Error' });
+    console.error('Error fetching access token:', error);
+    return reply.status(500).send({ error });
   }
 });
 export default async function handler(req, reply) {
